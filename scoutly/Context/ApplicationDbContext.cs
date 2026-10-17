@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using scoutly.Models;
 
-namespace scoutly.Models;
+namespace scoutly.Context;
 
-public partial class ScoutingDbContext : DbContext
+public partial class ApplicationDbContext : DbContext
 {
-    public ScoutingDbContext(DbContextOptions<ScoutingDbContext> options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
@@ -55,43 +56,7 @@ public partial class ScoutingDbContext : DbContext
             .HasPostgresExtension("pg_trgm")
             .HasPostgresExtension("pgcrypto");
 
-        modelBuilder.Entity<Application>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("applications_pkey");
-
-            entity.ToTable("applications");
-
-            entity.HasIndex(e => e.SpecialistProfileId, "ix_applications_profile_id");
-
-            entity.HasIndex(e => e.VacancyId, "ix_applications_vacancy_id");
-
-            entity.HasIndex(e => new { e.VacancyId, e.SpecialistProfileId }, "uq_vacancy_specialist").IsUnique();
-
-            entity.Property(e => e.Id)
-                .UseIdentityAlwaysColumn()
-                .HasColumnName("id");
-            entity.Property(e => e.AppliedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("applied_at");
-            entity.Property(e => e.CoverLetter).HasColumnName("cover_letter");
-            entity.Property(e => e.SpecialistProfileId).HasColumnName("specialist_profile_id");
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .HasDefaultValueSql("'New'::character varying")
-                .HasColumnName("status");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
-            entity.Property(e => e.VacancyId).HasColumnName("vacancy_id");
-
-            entity.HasOne(d => d.SpecialistProfile).WithMany(p => p.Applications)
-                .HasForeignKey(d => d.SpecialistProfileId)
-                .HasConstraintName("applications_specialist_profile_id_fkey");
-
-            entity.HasOne(d => d.Vacancy).WithMany(p => p.Applications)
-                .HasForeignKey(d => d.VacancyId)
-                .HasConstraintName("applications_vacancy_id_fkey");
-        });
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
         modelBuilder.Entity<Company>(entity =>
         {
