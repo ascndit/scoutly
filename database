@@ -1,1 +1,216 @@
+-- database/schema.sql
+-- Создание расширений
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
+-- 1. Роли, права и пользователи
+CREATE TABLE roles (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255)
+);
+
+CREATE TABLE permissions (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    code VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(255)
+);
+
+CREATE TABLE role_permissions (
+    role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    permission_id INTEGER NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+    PRIMARY KEY (role_id, permission_id)
+);
+
+CREATE TABLE users (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE refresh_tokens (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    device_info VARCHAR(255),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Навыки и профили специалистов
+CREATE TABLE skill_categories (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE skills (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    category_id INTEGER REFERENCES skill_categories(id) ON DELETE SET NULL,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE specialist_profiles (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    middle_name VARCHAR(100),
+    headline VARCHAR(150),
+    city VARCHAR(100),
+    phone VARCHAR(30),
+    telegram VARCHAR(50),
+    job_search_status VARCHAR(50) NOT NULL DEFAULT 'ActivelySearching',
+    is_ready_to_relocate BOOLEAN NOT NULL DEFAULT FALSE,
+    prefer_remote BOOLEAN NOT NULL DEFAULT FALSE,
+    expected_salary INTEGER,
+    about_me TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE specialist_skills (
+    specialist_profile_id INTEGER NOT NULL REFERENCES specialist_profiles(id) ON DELETE CASCADE,
+    skill_id INTEGER NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+    experience_years NUMERIC(4, 1),
+    skill_level VARCHAR(30) NOT NULL DEFAULT 'Middle',
+    PRIMARY KEY (specialist_profile_id, skill_id)
+);
+
+CREATE TABLE work_experiences (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    specialist_profile_id INTEGER NOT NULL REFERENCES specialist_profiles(id) ON DELETE CASCADE,
+    company_name VARCHAR(150) NOT NULL,
+    position VARCHAR(100) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    description TEXT
+);
+
+CREATE TABLE educations (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    specialist_profile_id INTEGER NOT NULL REFERENCES specialist_profiles(id) ON DELETE CASCADE,
+    institution_name VARCHAR(255) NOT NULL,
+    faculty VARCHAR(150),
+    degree VARCHAR(100),
+    start_year INTEGER,
+    end_year INTEGER
+);
+
+-- 3. Компании и вакансии
+CREATE TABLE companies (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    owner_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    industry VARCHAR(100),
+    city VARCHAR(100),
+    website VARCHAR(255),
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(30),
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE vacancies (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    title VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    responsibilities TEXT,
+    requirements TEXT,
+    terms TEXT,
+    city VARCHAR(100),
+    work_format VARCHAR(50) NOT NULL DEFAULT 'Office',
+    employment_type VARCHAR(50) NOT NULL DEFAULT 'FullTime',
+    salary_min INTEGER,
+    salary_max INTEGER,
+    status VARCHAR(50) NOT NULL DEFAULT 'Published',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE vacancy_skills (
+    vacancy_id INTEGER NOT NULL REFERENCES vacancies(id) ON DELETE CASCADE,
+    skill_id INTEGER NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+    is_required BOOLEAN NOT NULL DEFAULT TRUE,
+    min_experience_years NUMERIC(4, 1),
+    weight NUMERIC(3, 2) NOT NULL DEFAULT 1.00,
+    PRIMARY KEY (vacancy_id, skill_id)
+);
+
+-- 4. Отклики, скаутинг и воронка отбора
+CREATE TABLE applications (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    vacancy_id INTEGER NOT NULL REFERENCES vacancies(id) ON DELETE CASCADE,
+    specialist_profile_id INTEGER NOT NULL REFERENCES specialist_profiles(id) ON DELETE CASCADE,
+    cover_letter TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'New',
+    applied_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_vacancy_specialist UNIQUE (vacancy_id, specialist_profile_id)
+);
+
+CREATE TABLE recruiter_candidates (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recruiter_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    specialist_profile_id INTEGER NOT NULL REFERENCES specialist_profiles(id) ON DELETE CASCADE,
+    vacancy_id INTEGER REFERENCES vacancies(id) ON DELETE SET NULL,
+    match_score NUMERIC(5, 2),
+    stage VARCHAR(50) NOT NULL DEFAULT 'Scouted',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_recruiter_vacancy_candidate UNIQUE (recruiter_user_id, specialist_profile_id, vacancy_id)
+);
+
+CREATE TABLE interaction_history (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recruiter_candidate_id INTEGER NOT NULL REFERENCES recruiter_candidates(id) ON DELETE CASCADE,
+    author_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    action_type VARCHAR(50) NOT NULL,
+    notes TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. Системные таблицы и логирование
+CREATE TABLE notifications (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL DEFAULT 'Info',
+    target_url VARCHAR(255),
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE system_settings (
+    key VARCHAR(100) PRIMARY KEY,
+    value TEXT NOT NULL,
+    description VARCHAR(255),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE error_logs (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    request_id VARCHAR(100),
+    error_type VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    stack_trace TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индексы
+CREATE INDEX ix_users_email ON users(email);
+CREATE INDEX ix_users_role_id ON users(role_id);
+CREATE INDEX ix_specialist_profiles_city ON specialist_profiles(city);
+CREATE INDEX ix_specialist_skills_skill_id ON specialist_skills(skill_id);
+CREATE INDEX ix_vacancies_status ON vacancies(status);
+CREATE INDEX ix_vacancies_city ON vacancies(city);
+CREATE INDEX ix_vacancy_skills_skill_id ON vacancy_skills(skill_id);
+CREATE INDEX ix_applications_vacancy_id ON applications(vacancy_id);
+CREATE INDEX ix_recruiter_candidates_recruiter_id ON recruiter_candidates(recruiter_user_id);
