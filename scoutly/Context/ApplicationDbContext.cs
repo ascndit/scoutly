@@ -1,59 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using scoutly.Models;
 
-namespace scoutly.Context;
-
-public partial class ApplicationDbContext : DbContext
+namespace scoutly.Context
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
+    public class ApplicationDbContext : DbContext
     {
-    }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
 
-    public virtual DbSet<Application> Applications { get; set; }
+        public virtual DbSet<Role> Roles => Set<Role>();
+        public virtual DbSet<Permission> Permissions => Set<Permission>();
+        public virtual DbSet<User> Users => Set<User>();
+        public virtual DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public virtual DbSet<SkillCategory> SkillCategories => Set<SkillCategory>();
+        public virtual DbSet<Skill> Skills => Set<Skill>();
+        public virtual DbSet<SpecialistProfile> SpecialistProfiles => Set<SpecialistProfile>();
+        public virtual DbSet<SpecialistSkill> SpecialistSkills => Set<SpecialistSkill>();
+        public virtual DbSet<WorkExperience> WorkExperiences => Set<WorkExperience>();
+        public virtual DbSet<Education> Educations => Set<Education>();
+        public virtual DbSet<Company> Companies => Set<Company>();
+        public virtual DbSet<Vacancy> Vacancies => Set<Vacancy>();
+        public virtual DbSet<VacancySkill> VacancySkills => Set<VacancySkill>();
+        public virtual DbSet<Application> Applications => Set<Application>();
+        public virtual DbSet<RecruiterCandidate> RecruiterCandidates => Set<RecruiterCandidate>();
+        public virtual DbSet<InteractionHistory> InteractionHistories => Set<InteractionHistory>();
+        public virtual DbSet<Notification> Notifications => Set<Notification>();
+        public virtual DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+        public virtual DbSet<ErrorLog> ErrorLogs => Set<ErrorLog>();
 
-    public virtual DbSet<Company> Companies { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
 
-    public virtual DbSet<Education> Educations { get; set; }
-
-    public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
-
-    public virtual DbSet<InteractionHistory> InteractionHistories { get; set; }
-
-    public virtual DbSet<Notification> Notifications { get; set; }
-
-    public virtual DbSet<Permission> Permissions { get; set; }
-
-    public virtual DbSet<RecruiterCandidate> RecruiterCandidates { get; set; }
-
-    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
-
-    public virtual DbSet<Role> Roles { get; set; }
-
-    public virtual DbSet<Skill> Skills { get; set; }
-
-    public virtual DbSet<SkillCategory> SkillCategories { get; set; }
-
-    public virtual DbSet<SpecialistProfile> SpecialistProfiles { get; set; }
-
-    public virtual DbSet<SpecialistSkill> SpecialistSkills { get; set; }
-
-    public virtual DbSet<SystemSetting> SystemSettings { get; set; }
-
-    public virtual DbSet<User> Users { get; set; }
-
-    public virtual DbSet<Vacancy> Vacancies { get; set; }
-
-    public virtual DbSet<VacancySkill> VacancySkills { get; set; }
-
-    public virtual DbSet<WorkExperience> WorkExperiences { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+            // Подключает все классы *.Configuration.cs в сборке
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        }
     }
 }
