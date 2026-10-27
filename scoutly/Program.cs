@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using scoutly.Context;
+using scoutly.Data.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 // User Secrets || appsettings.json

@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using scoutly.Context;
+using scoutly.Data.Context;
+using scoutly.Data.Entities;
 using scoutly.DTOs;
-using scoutly.Models;
+using scoutly.Entities;
 
 namespace scoutly.Controllers
 {
