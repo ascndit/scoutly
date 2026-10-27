@@ -2,9 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using scoutly.Data.Context;
 using scoutly.Data.Entities;
+using scoutly.DTOs;
 using scoutly.Entities;
 
-namespace scoutly.Features.Vacancies
+namespace scoutly.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

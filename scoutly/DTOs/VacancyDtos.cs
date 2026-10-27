@@ -1,4 +1,4 @@
-﻿namespace scoutly.Features.Vacancies
+﻿namespace scoutly.DTOs
 {
     // DTO для создания новой вакансии
     public class CreateVacancyDto
