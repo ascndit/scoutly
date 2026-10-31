@@ -1,15 +1,23 @@
-Scoutly — Программный комплекс для автоматизированного поиска и скаутинга специалистов
-Кроссплатформенный программный комплекс, предназначенный для автоматизации процессов активного поиска, оценки компетенций (скоринга), ранжирования соискателей и сквозного ведения кандидатов по воронке найма. Комплекс объединяет серверное REST API ядро, реляционное хранилище данных, веб-интерфейс, мобильный клиент и специализированное рабочее место рекрутера.
+# Scoutly
 
-🛠 Технологический стек
-Платформа: .NET 8.0+ / C# (ASP.NET Core Web API)
+Учебный API вакансий.
 
-СУБД: PostgreSQL 15+ (с расширениями pg_trgm, pgcrypto)
+## Стек
 
-ORM: Entity Framework Core (Database-First, Fluent API)
+- .NET 9, ASP.NET Core
+- Entity Framework Core и PostgreSQL
+- DTO
 
-Драйвер БД: Npgsql.EntityFrameworkCore.PostgreSQL + EFCore.NamingConventions (автоматический snake_case)
+## Что есть
 
-Документация и тестирование API: OpenAPI / Swagger UI
+Модель компаний, вакансий, навыков и профилей специалистов. Реализован CRUD вакансий и DTO: `GET`, `POST`, `PUT` и `DELETE` для `/api/vacancies`.
 
-Безопасность: Secret Manager (User Secrets) для изоляции паролей локальной среды, RBAC (роли и гранулярные разрешения)
+## Запуск
+
+Нужны .NET 9 SDK и PostgreSQL. Строка подключения задаётся локально в `ConnectionStrings:DefaultConnection`, в репозитории её нет.
+
+```bash
+dotnet run --project scoutly
+```
+
+HTTP: `http://localhost:5202`. Swagger: `/swagger`.
