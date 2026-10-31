@@ -7,6 +7,7 @@ using scoutly.Entities;
 
 namespace scoutly.Controllers
 {
+    //TODO: На каждый ендпоинт создать свою фичу, по аналогии с Skill.Create
     [ApiController]
     [Route("api/[controller]")]
     public class VacanciesController : ControllerBase
