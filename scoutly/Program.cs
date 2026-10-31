@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using scoutly.Abstraction;
 using scoutly.Data.Context;
+using scoutly.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 // User Secrets || appsettings.json
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContext");
 
 // ApplicationDbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -12,6 +14,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSnakeCaseNamingConvention();
 });
 
+//TODO РЎРѕР·РґР°С‚СЊ РїР°РїРєСѓ startup Рё СЂР°Р·РґРµР»РёС‚СЊ Р»РѕРіРёС‡РµСЃРєРё СЂРµРіРёСЃС‚СЂР°С†РёСЋ СЃРµСЂРІРёСЃРѕРІ
 // Controllers || Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -21,9 +24,12 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Scoutly API",
         Version = "v1",
-        Description = "API системы скаутинга специалистов"
+        Description = "API пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"
     });
 });
+
+builder.Services.AddScoped<IDispatcher, Dispatcher>();
+builder.Services.AddHandlers();
 
 var app = builder.Build();
 
@@ -33,7 +39,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Scoutly API v1");
-        c.RoutePrefix = "swagger"; //Swagger UI доступен по адресу /swagger
+        c.RoutePrefix = "swagger";
     });
 }
 

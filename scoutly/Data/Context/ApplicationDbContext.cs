@@ -23,6 +23,7 @@ namespace scoutly.Data.Context
         public virtual DbSet<Company> Companies => Set<Company>();
         public virtual DbSet<Vacancy> Vacancies => Set<Vacancy>();
         public virtual DbSet<VacancySkill> VacancySkills => Set<VacancySkill>();
+        public DbSet<VacancySkill> VacancySkills1 { get; set; }
         public virtual DbSet<Application> Applications => Set<Application>();
         public virtual DbSet<RecruiterCandidate> RecruiterCandidates => Set<RecruiterCandidate>();
         public virtual DbSet<InteractionHistory> InteractionHistories => Set<InteractionHistory>();
