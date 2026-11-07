@@ -1,6 +1,52 @@
 @scoutly_HostAddress = http://localhost:5202
 
-GET {{scoutly_HostAddress}}/weatherforecast/
+### 1. СПРАВОЧНИК НАВЫКОВ: Получить все навыки
+GET {{scoutly_HostAddress}}/api/Skill
 Accept: application/json
 
-###
+### 2. СПРАВОЧНИК НАВЫКОВ: Поиск навыка по названию
+GET {{scoutly_HostAddress}}/api/Skill?search=C#
+Accept: application/json
+
+### 3. ВАКАНСИИ: Получить список опубликованных вакансий
+GET {{scoutly_HostAddress}}/api/Vacancies?page=1&pageSize=10
+Accept: application/json
+
+### 4. ВАКАНСИИ: Детальная карточка вакансии по ID
+GET {{scoutly_HostAddress}}/api/Vacancies/1
+Accept: application/json
+
+### 5. ПРОФИЛИ: Получить анкету специалиста (ID = 1, Михаил Волков)
+GET {{scoutly_HostAddress}}/api/Profiles/1
+Accept: application/json
+
+### 6. СКАУТИНГ (US-16): Автоматический подбор и ранжирование топа соискателей под вакансию
+GET {{scoutly_HostAddress}}/api/Scouting/auto-match/1
+Accept: application/json
+
+### 7. СКАУТИНГ (US-17): Детальный скоринг кандидата (Вакансия 1, Профиль 1)
+GET {{scoutly_HostAddress}}/api/Scouting/match-score?vacancyId=1&specialistProfileId=1
+Accept: application/json
+
+### 8. СКАУТИНГ (US-17): Детальный скоринг кандидата (Вакансия 1, Профиль 4 — без обязательных навыков)
+GET {{scoutly_HostAddress}}/api/Scouting/match-score?vacancyId=1&specialistProfileId=4
+Accept: application/json
+
+### 9. СКАУТИНГ (US-18): Перевод кандидата на следующий этап воронки найма
+POST {{scoutly_HostAddress}}/api/Scouting/change-stage
+Content-Type: application/json
+
+{
+  "recruiterCandidateId": 1,
+  "recruiterUserId": 8,
+  "newStage": "Offer",
+  "comment": "Успешно согласован финальный оффер по результатам собеседования"
+}
+
+### 10. СКАУТИНГ (US-19): Просмотр истории взаимодействий по кандидату в воронке
+GET {{scoutly_HostAddress}}/api/Scouting/history/1
+Accept: application/json
+
+### 11. ОТКЛИКИ: Просмотр откликов соискателя (ID = 1)
+GET {{scoutly_HostAddress}}/api/Applications/my/1
+Accept: application/json
