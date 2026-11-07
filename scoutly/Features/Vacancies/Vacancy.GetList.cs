@@ -4,6 +4,7 @@ using scoutly.Data.Context;
 
 namespace scoutly.Features.Vacancies;
 
+//TODO: Можем расширить фильтр
 public record GetVacanciesQuery(
     string? City = null,
     string? WorkFormat = null,

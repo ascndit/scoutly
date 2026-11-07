@@ -2,7 +2,7 @@
 
 namespace scoutly.Startup;
 
-public static class SwaggerStartup
+public static partial class Startup
 {
     public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
     {

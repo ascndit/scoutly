@@ -3,9 +3,9 @@ using scoutly.Extensions;
 
 namespace scoutly.Startup;
 
-public static class ApplicationServicesStartup
+public static partial class Startup
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddControllers();
 

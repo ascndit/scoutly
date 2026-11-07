@@ -1,20 +1,17 @@
 using scoutly.Startup;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddDatabaseServices(builder.Configuration);
-builder.Services.AddApplicationServices();
-builder.Services.AddSwaggerConfiguration();
-
-var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwaggerConfiguration();
+    await WebApplication
+        .CreateBuilder(args)
+        .ConfigureServices()
+        .Build()
+        .Configure()
+        .RunAsync();
 }
-
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+    when (ex is not HostAbortedException)
+{
+    Console.Error.WriteLine(ex.Message);
+    throw;
+}

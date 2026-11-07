@@ -5,6 +5,8 @@ using scoutly.Data.Entities;
 
 namespace scoutly.Features.Profiles;
 
+public record SkillInput(int id, string level);
+
 public record CreateOrUpdateProfileCommand(
     int UserId,
     string FirstName,
@@ -16,7 +18,7 @@ public record CreateOrUpdateProfileCommand(
     string? Telegram,
     int? ExpectedSalary,
     string? AboutMe,
-    List<int> SkillIds
+    List<SkillInput> SkillIds
 ) : ICommand<ProfileResponse>;
 
 public record GetProfileByIdQuery(int Id) : ICommand<ProfileResponse?>;
@@ -79,15 +81,15 @@ public class ManageProfileHandler(ApplicationDbContext context)
             profile.UpdatedAt = DateTime.UtcNow;
             profile.SpecialistSkills.Clear();
         }
-
+        
         if (request.SkillIds is { Count: > 0 })
         {
             foreach (var skillId in request.SkillIds)
             {
                 profile.SpecialistSkills.Add(new SpecialistSkill
                 {
-                    SkillId = skillId,
-                    SkillLevel = "Middle"
+                    SkillId = skillId.id,
+                    SkillLevel = skillId.level
                 });
             }
         }

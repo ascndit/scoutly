@@ -3,7 +3,7 @@ using scoutly.Data.Context;
 
 namespace scoutly.Startup;
 
-public static class DatabaseStartup
+public static partial class Startup
 {
     public static IServiceCollection AddDatabaseServices(
         this IServiceCollection services,

@@ -32,7 +32,7 @@ public class ChangeCandidateStageHandler(ApplicationDbContext context)
         {
             RecruiterCandidateId = candidate.Id,
             AuthorUserId = request.RecruiterUserId,
-            ActionType = "StageChange",
+            ActionType = "StageChange", //TODO: Вынести в константы
             Notes = $"Смена этапа с '{oldStage}' на '{request.NewStage}'. Комментарий: {request.Comment}",
             CreatedAt = DateTime.UtcNow
         };

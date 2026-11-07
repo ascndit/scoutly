@@ -34,12 +34,8 @@ public class CreateVacancyHandler(ApplicationDbContext context) : IHandler<Creat
     public async Task<VacancyResponse> HandleAsync(CreateVacancyCommand request, CancellationToken cancellationToken)
     {
         var company = await context.Companies
-            .FirstOrDefaultAsync(c => c.Id == request.CompanyId, cancellationToken);
-
-        if (company is null)
-        {
-            throw new KeyNotFoundException("Указанная компания не существует");
-        }
+            .FirstOrDefaultAsync(c => c.Id == request.CompanyId, cancellationToken) 
+            ?? throw new KeyNotFoundException("Указанная компания не существует");;
 
         var vacancy = new Vacancy
         {
@@ -47,16 +43,17 @@ public class CreateVacancyHandler(ApplicationDbContext context) : IHandler<Creat
             Title = request.Title,
             Description = request.Description,
             City = request.City,
-            WorkFormat = string.IsNullOrWhiteSpace(request.WorkFormat) ? "Office" : request.WorkFormat,
+            WorkFormat = string.IsNullOrWhiteSpace(request.WorkFormat) ? "Office" : request.WorkFormat, //TODO: Вынести в константы
             SalaryMin = request.SalaryMin,
             SalaryMax = request.SalaryMax,
-            Status = "Published",
+            Status = "Published", //TODO: Вынести в константы
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         if (request.SkillIds is { Count: > 0 })
         {
+            //TODO: Addrange hint если мы добавляем большой, то рекомендуется использовать bulkInsert
             foreach (var skillId in request.SkillIds)
             {
                 vacancy.VacancySkills.Add(new VacancySkill

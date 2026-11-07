@@ -37,6 +37,24 @@ public class GetVacancyByIdHandler(ApplicationDbContext context)
 
         if (v is null) return null;
 
+        //TODO то или это
+        var v1 = await context.Vacancies
+            .Select(v => new VacancyDetailsResponse(
+                v.Id,
+                v.CompanyId,
+                v.Company.Name,
+                v.Title,
+                v.Description,
+                v.City,
+                v.WorkFormat,
+                v.SalaryMin,
+                v.SalaryMax,
+                v.Status,
+                v.VacancySkills.Select(s => s.Skill.Name).ToList(),
+                v.CreatedAt
+            ))
+            .FirstOrDefaultAsync(v => v.Id == request.Id, cancellationToken);
+        
         return new VacancyDetailsResponse(
             v.Id,
             v.CompanyId,
