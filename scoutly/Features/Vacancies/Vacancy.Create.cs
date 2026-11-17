@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using scoutly.Abstraction;
+using scoutly.Data.Constants;
 using scoutly.Data.Context;
 using scoutly.Data.Entities;
 
@@ -43,18 +44,17 @@ public class CreateVacancyHandler(ApplicationDbContext context) : IHandler<Creat
             Title = request.Title,
             Description = request.Description,
             City = request.City,
-            WorkFormat = string.IsNullOrWhiteSpace(request.WorkFormat) ? "Office" : request.WorkFormat, //TODO: Вынести в константы
+            WorkFormat = string.IsNullOrWhiteSpace(request.WorkFormat) ? WorkFormats.Remote : request.WorkFormat,
             SalaryMin = request.SalaryMin,
             SalaryMax = request.SalaryMax,
-            Status = "Published", //TODO: Вынести в константы
+            Status = VacancyStatuses.Active,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         if (request.SkillIds is { Count: > 0 })
         {
-            //TODO: Addrange hint если мы добавляем большой, то рекомендуется использовать bulkInsert
-            foreach (var skillId in request.SkillIds)
+            foreach (var skillId in request.SkillIds.Distinct())
             {
                 vacancy.VacancySkills.Add(new VacancySkill
                 {

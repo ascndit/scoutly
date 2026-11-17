@@ -1,4 +1,5 @@
 ﻿using scoutly.Abstraction;
+using scoutly.Data.Constants;
 using scoutly.Data.Context;
 
 namespace scoutly.Features.Vacancies;
@@ -24,10 +25,21 @@ public class UpdateVacancyHandler(ApplicationDbContext context) : IHandler<Updat
         vacancy.Title = request.Title;
         vacancy.Description = request.Description;
         vacancy.City = request.City;
-        vacancy.WorkFormat = request.WorkFormat;
+        vacancy.WorkFormat = !string.IsNullOrWhiteSpace(request.WorkFormat)
+            ? request.WorkFormat
+            : string.IsNullOrWhiteSpace(vacancy.WorkFormat) ? WorkFormats.Remote : vacancy.WorkFormat;
         vacancy.SalaryMin = request.SalaryMin;
         vacancy.SalaryMax = request.SalaryMax;
-        vacancy.Status = request.Status;
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            vacancy.Status = request.Status;
+        }
+        else if (string.IsNullOrWhiteSpace(vacancy.Status))
+        {
+            vacancy.Status = VacancyStatuses.Active;
+        }
+
         vacancy.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync(cancellationToken);

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using scoutly.Abstraction;
+using scoutly.Data.Constants;
 using scoutly.Data.Context;
 using scoutly.Data.Entities;
 
@@ -88,38 +89,40 @@ public class ScoutingPipelineHandler(ApplicationDbContext context, IDispatcher d
             new CalculateMatchScoreQuery(request.VacancyId, request.SpecialistProfileId),
             cancellationToken);
 
-        var entry = new RecruiterCandidate
+        var candidate = new RecruiterCandidate
         {
             RecruiterUserId = request.RecruiterUserId,
             SpecialistProfileId = request.SpecialistProfileId,
             VacancyId = request.VacancyId,
             MatchScore = scoreResult.MatchPercentage,
-            Stage = "Scouted",
+            Stage = CandidateStages.New,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        context.RecruiterCandidates.Add(entry);
+        context.RecruiterCandidates.Add(candidate);
         await context.SaveChangesAsync(cancellationToken);
-
-        context.InteractionHistories.Add(new InteractionHistory
+        
+        var historyEntry = new InteractionHistory
         {
-            RecruiterCandidateId = entry.Id,
+            RecruiterCandidateId = candidate.Id,
             AuthorUserId = request.RecruiterUserId,
-            ActionType = "AddedToPipeline",
-            Notes = $"Кандидат добавлен в воронку со скорингом {entry.MatchScore}%",
+            ActionType = InteractionActionTypes.AddedToPipeline,
+            Notes = $"Кандидат добавлен в воронку на этап '{CandidateStages.New}'.",
             CreatedAt = DateTime.UtcNow
-        });
+        };
+
+        context.InteractionHistories.Add(historyEntry);
         await context.SaveChangesAsync(cancellationToken);
 
         return new RecruiterCandidateResponse(
-            entry.Id,
-            entry.RecruiterUserId,
-            entry.SpecialistProfileId,
-            entry.VacancyId,
-            entry.MatchScore,
-            entry.Stage,
-            entry.CreatedAt
+            candidate.Id,
+            candidate.RecruiterUserId,
+            candidate.SpecialistProfileId,
+            candidate.VacancyId,
+            candidate.MatchScore,
+            candidate.Stage,
+            candidate.CreatedAt
         );
     }
 

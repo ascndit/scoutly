@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using scoutly.Abstraction;
+using scoutly.Data.Constants;
 using scoutly.Data.Context;
 using scoutly.Data.Entities;
 
@@ -57,14 +58,18 @@ public class ManageProfileHandler(ApplicationDbContext context)
                 LastName = request.LastName,
                 MiddleName = request.MiddleName,
                 Headline = request.Headline,
+                AboutMe = request.AboutMe,
                 City = request.City,
                 Phone = request.Phone,
                 Telegram = request.Telegram,
                 ExpectedSalary = request.ExpectedSalary,
-                AboutMe = request.AboutMe,
+                IsReadyToRelocate = false,
+                PreferRemote = false,
+                JobSearchStatus = JobSearchStatuses.ActivelyLooking,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+
             context.SpecialistProfiles.Add(profile);
         }
         else

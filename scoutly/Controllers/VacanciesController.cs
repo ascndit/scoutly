@@ -12,16 +12,10 @@ public class VacanciesController(IDispatcher dispatcher) : ControllerBase
     // READ ALL: GET /api/vacancies
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<VacancyListItemResponse>>> GetVacancies(
-        [FromQuery] string? city,
-        [FromQuery] string? workFormat,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
+        [FromQuery] GetVacanciesQuery query,
         CancellationToken cancellationToken = default)
     {
-        var result = await dispatcher.SendAsync(
-            new GetVacanciesQuery(city, workFormat, page, pageSize),
-            cancellationToken);
-
+        var result = await dispatcher.SendAsync(query, cancellationToken);
         return Ok(result);
     }
 

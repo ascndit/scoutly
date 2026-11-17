@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using scoutly.Abstraction;
+using scoutly.Data.Constants;
 using scoutly.Data.Context;
 using scoutly.Data.Entities;
 
@@ -51,7 +52,7 @@ public class ApplicationManageHandler(ApplicationDbContext context)
             VacancyId = request.VacancyId,
             SpecialistProfileId = request.SpecialistProfileId,
             CoverLetter = request.CoverLetter,
-            Status = "New",
+            Status = ApplicationStatuses.Pending,
             AppliedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using scoutly.Abstraction;
+using scoutly.Data.Constants;
 using scoutly.Data.Context;
 using scoutly.Data.Entities;
 
@@ -9,7 +10,7 @@ public record ChangeCandidateStageCommand(
     int RecruiterCandidateId,
     int RecruiterUserId,
     string NewStage,
-    string Comment
+    string? Comment
 ) : ICommand<bool>;
 
 public class ChangeCandidateStageHandler(ApplicationDbContext context)
@@ -19,21 +20,36 @@ public class ChangeCandidateStageHandler(ApplicationDbContext context)
         ChangeCandidateStageCommand request,
         CancellationToken cancellationToken)
     {
+        if (!CandidateStages.TryNormalize(request.NewStage, out var normalizedStage))
+        {
+            throw new ArgumentException($"Недопустимый этап воронки: '{request.NewStage}'.", nameof(request.NewStage));
+        }
+
         var candidate = await context.RecruiterCandidates
             .FirstOrDefaultAsync(c => c.Id == request.RecruiterCandidateId, cancellationToken);
 
         if (candidate is null) return false;
 
         string oldStage = candidate.Stage;
-        candidate.Stage = request.NewStage;
+        if (string.Equals(oldStage, normalizedStage, StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(request.Comment))
+        {
+            return true;
+        }
+
+        candidate.Stage = normalizedStage;
         candidate.UpdatedAt = DateTime.UtcNow;
+
+        var notes = string.IsNullOrWhiteSpace(request.Comment)
+            ? $"Смена этапа с '{oldStage}' на '{normalizedStage}'."
+            : $"Смена этапа с '{oldStage}' на '{normalizedStage}'. Комментарий: {request.Comment.Trim()}";
 
         var historyEntry = new InteractionHistory
         {
             RecruiterCandidateId = candidate.Id,
             AuthorUserId = request.RecruiterUserId,
-            ActionType = "StageChange", //TODO: Вынести в константы
-            Notes = $"Смена этапа с '{oldStage}' на '{request.NewStage}'. Комментарий: {request.Comment}",
+            ActionType = InteractionActionTypes.StageChange,
+            Notes = notes,
             CreatedAt = DateTime.UtcNow
         };
 
