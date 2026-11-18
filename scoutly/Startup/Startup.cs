@@ -7,6 +7,7 @@ public static partial class Startup
         builder.Services.AddDatabaseServices(builder.Configuration);
         builder.Services.AddServices();
         builder.Services.AddSwaggerConfiguration();
+        builder.Services.AddCorsConfiguration();
         
         return builder;
     }
@@ -17,8 +18,12 @@ public static partial class Startup
         {
             app.UseSwaggerConfiguration();
         }
-
-        app.UseHttpsRedirection();
+        else
+        {
+            app.UseHttpsRedirection();
+        }
+        
+        app.UseCorsConfiguration();
         app.UseAuthorization();
         app.MapControllers();
         
