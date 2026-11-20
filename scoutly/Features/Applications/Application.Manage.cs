@@ -25,9 +25,30 @@ public record ApplicationResponse(
     DateTime AppliedAt
 );
 
+public record GetIncomingApplicationsQuery(int? CompanyId)
+    : ICommand<IReadOnlyList<IncomingApplicationResponse>>;
+
+public record UpdateApplicationStatusCommand(int ApplicationId, string Status)
+    : ICommand<bool>;
+
+public record IncomingApplicationResponse(
+    int Id,
+    int VacancyId,
+    string VacancyTitle,
+    int SpecialistProfileId,
+    string CandidateFullName,
+    string? CandidateHeadline,
+    string? CandidateCity,
+    string Status,
+    string? CoverLetter,
+    DateTime AppliedAt
+);
+
 public class ApplicationManageHandler(ApplicationDbContext context)
     : IHandler<ApplyToVacancyCommand, ApplicationResponse>,
-      IHandler<GetMyApplicationsQuery, IReadOnlyList<ApplicationResponse>>
+      IHandler<GetMyApplicationsQuery, IReadOnlyList<ApplicationResponse>>,
+      IHandler<GetIncomingApplicationsQuery, IReadOnlyList<IncomingApplicationResponse>>,
+      IHandler<UpdateApplicationStatusCommand, bool>
 {
     public async Task<ApplicationResponse> HandleAsync(
         ApplyToVacancyCommand request,
@@ -91,5 +112,47 @@ public class ApplicationManageHandler(ApplicationDbContext context)
                 a.AppliedAt
             ))
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<IncomingApplicationResponse>> HandleAsync(
+        GetIncomingApplicationsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var query = from a in context.Applications.AsNoTracking()
+                    join v in context.Vacancies.AsNoTracking() on a.VacancyId equals v.Id
+                    join p in context.SpecialistProfiles.AsNoTracking() on a.SpecialistProfileId equals p.Id
+                    where !request.CompanyId.HasValue || v.CompanyId == request.CompanyId.Value
+                    orderby a.AppliedAt descending
+                    select new IncomingApplicationResponse(
+                        a.Id,
+                        v.Id,
+                        v.Title,
+                        p.Id,
+                        (p.LastName + " " + p.FirstName + " " + (p.MiddleName ?? "")).Trim(),
+                        p.Headline,
+                        p.City,
+                        a.Status,
+                        a.CoverLetter,
+                        a.AppliedAt
+                    );
+
+        return await query.ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> HandleAsync(
+        UpdateApplicationStatusCommand request,
+        CancellationToken cancellationToken)
+    {
+        var application = await context.Applications
+            .FirstOrDefaultAsync(a => a.Id == request.ApplicationId, cancellationToken);
+
+        if (application is null)
+            return false;
+
+        application.Status = request.Status;
+        application.UpdatedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 }

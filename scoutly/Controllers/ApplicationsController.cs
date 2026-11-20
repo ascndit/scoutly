@@ -40,4 +40,32 @@ public class ApplicationsController(IDispatcher dispatcher) : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("incoming")]
+    public async Task<ActionResult<IReadOnlyList<IncomingApplicationResponse>>> GetIncoming(
+        [FromQuery] int? companyId,
+        CancellationToken cancellationToken)
+    {
+        var result = await dispatcher.SendAsync(
+            new GetIncomingApplicationsQuery(companyId),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpPatch("{id:int}/status")]
+    public async Task<IActionResult> UpdateStatus(
+        int id,
+        [FromBody] UpdateApplicationStatusCommand command,
+        CancellationToken cancellationToken)
+    {
+        var updated = await dispatcher.SendAsync(
+            command with { ApplicationId = id },
+            cancellationToken);
+
+        if (!updated)
+            return NotFound(new { message = "Отклик не найден" });
+
+        return Ok(new { message = "Статус отклика обновлен" });
+    }
 }
